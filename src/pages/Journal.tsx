@@ -6,6 +6,7 @@ import LetterGlitch from '@/components/bits/LetterGlitch';
 import MediaPlaceholder from '@/components/ui/MediaPlaceholder';
 import { usePageMeta } from '@/lib/seo';
 import { allTags, formatDate, getAllPosts } from '@/lib/journal';
+import { prefetchJournalPost } from '@/lib/prefetch';
 import type { JournalPost } from '@/content/types';
 
 /** 非首卡的基础跨列节奏（12 列栅格）。 */
@@ -80,6 +81,13 @@ function PostCard({ post, index, featured = false }: PostCardProps) {
   return (
     <Link
       to={`/journal/${post.slug}`}
+      // 悬停 / 聚焦即预取详情页 chunk（含 marked + 正文），点击时不用等下载
+      onMouseEnter={() => {
+        void prefetchJournalPost();
+      }}
+      onFocus={() => {
+        void prefetchJournalPost();
+      }}
       className={[
         'group flex h-full flex-col overflow-hidden rounded-[16px] border border-line bg-surface/80',
         'transition-[border-color,transform] duration-[320ms] ease-brand hover:-translate-y-0.5 hover:border-line-strong',

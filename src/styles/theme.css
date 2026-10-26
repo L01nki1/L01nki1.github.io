@@ -216,3 +216,137 @@
   --swap-badge: rgb(255 255 255 / 0.05) !important;
   --swap-shade: #08090b !important;
 }
+
+/* ==========================================================================
+ * 页面转场：斜切遮罩横扫（斜的 wiper，从左扫到右）
+ *
+ * 结构：`App.tsx` 用 `<ViewTransition name="page">` 只包住 `<Routes>`，
+ * Nav / BackgroundLayer / Footer 在它之外。于是：
+ *   - `root` 快照（= 整页，除了被 "page" 命名提升出去的内容区）→ 动画关掉，保持不动
+ *   - `page` 快照（= 内容区）→ 新页从左侧一条缝长成盖满全屏的斜边遮罩
+ * 用户看到的：Nav、背景光、Footer 一动不动，只有中间那块内容「被一把斜刀抹过去」。
+ *
+ * 几何（clip-path 四个点依次是 左上、右上、右下、左下）：
+ *   0%   → (0,0) (0%,0) (-12%,100%) (0%,100%)：四个点几乎共线，面积≈0，不可见
+ *   100% → (0,0) (118%,0) (106%,100%) (0%,100%)：
+ *          右侧必须越过视口（118% / 106%），否则斜边右上角的缺口会露出旧页面
+ *   右下的 -12% 与右上的 118% 差 12%（视口宽），这就是那条斜边；关键帧线性插值，
+ *   所以斜度随进度从 0 长到 12%（起手是竖直的缝，收尾最陡），不是恒定角度。
+ * ========================================================================== */
+
+/* 1. 整页快照不参与动画：Nav / 背景 / Footer 保持不动，只有内容区横扫 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+/*
+ * UA 还会给 root 的 group 留一条 250ms 的组动画（管容器尺寸/位移）。
+ * old/new 关了它不影响观感，但留着会让「整页不动」这件事多一个不确定因素，
+ * 所以一并关掉 —— 本页所有可见动画都应该只发生在 page 这一组上。
+ */
+::view-transition-group(root) {
+  animation: none;
+}
+
+/* 2. 内容区：斜切横扫，左 → 右，460ms */
+:root {
+  /*
+   * 横扫专用缓动。**不要**换成 --ease-brand（cubic-bezier(.16,1,.3,1)）：
+   * 那条曲线前段极陡，实测 clip 行程在 120ms 时已经走完 84%（≈97% 在 230ms 内跑完），
+   * 460ms 的时长只剩最后一丝爬行，肉眼看到的是「闪一下」而不是「斜刀扫过去」。
+   *
+   * 这条曲线在 120ms → 36%、230ms → 78%、345ms → 96%：起手就有可见位移，
+   * 全程都有斜边在动，收尾不硬停（对称 ease-in-out 的问题是前 150ms 几乎不动）。
+   */
+  --hp-wipe-ease: cubic-bezier(0.3, 0.05, 0.25, 1);
+}
+
+::view-transition-group(page) {
+  animation-duration: 460ms;
+}
+
+/*
+ * 必须把 UA 默认的 `mix-blend-mode: plus-lighter` 压回 `normal`。
+ *
+ * UA 用它做「朴素交叉淡入」，前提是两张快照都是不透明整页图。本站的内容区快照背景是
+ * **透明**的（底色在 body / BackgroundLayer 上，内容区故意不铺底色，否则会盖住 WebGL 背景），
+ * 于是新旧两页的文字会按加法叠加——实测「或许是一些想法」和「hello world」两个标题糊在一起，
+ * 完全读不出来。压回 normal 之后走下面的硬切遮罩，不再有重影。
+ */
+::view-transition-old(page),
+::view-transition-new(page) {
+  mix-blend-mode: normal;
+}
+
+/*
+ * 新页：从左侧一条零宽斜线长成盖满全屏的遮罩。
+ * 0% 时四个点共线（面积 0），100% 时右侧越过视口（118% / 106%）才不会露边。
+ */
+@keyframes hp-wipe-in {
+  0% {
+    clip-path: polygon(0 0, 0% 0, -12% 100%, 0% 100%);
+  }
+  100% {
+    clip-path: polygon(0 0, 118% 0, 106% 100%, 0% 100%);
+  }
+}
+
+/*
+ * 旧页：被**同一条斜边**从左边裁掉（0% 完整，100% 缩成最右侧的一条零宽斜线）。
+ *
+ * 为什么不是「淡化到 0.45」：淡出只在旧图不透明时好看，本站旧图背景透明，
+ * 淡出的结果是旧内容一直浮在新内容底下直到动画结束（重影）。裁切才是干净的横扫。
+ * 两条边在两端严格重合（0% 都在最左，100% 都在 118%/106%），中段最多差约 6% 视口宽，
+ * 那段缝露出的是遮罩底下真实的 DOM（= 新页本身），肉眼不可见。
+ */
+@keyframes hp-wipe-out {
+  0% {
+    clip-path: polygon(0 0, 118% 0, 106% 100%, 0% 100%);
+  }
+  100% {
+    clip-path: polygon(118% 0, 118% 0, 106% 100%, 106% 100%);
+  }
+}
+
+::view-transition-new(page) {
+  animation: hp-wipe-in 460ms var(--hp-wipe-ease) both;
+}
+
+::view-transition-old(page) {
+  animation: hp-wipe-out 460ms var(--hp-wipe-ease) both;
+}
+
+/*
+ * 兜底：React 在「同一个 name 出现多个实例」时会自动加后缀（page_1 / page_2 …）。
+ * 实测首次挂载那一次曾短暂出现 3 个 old-only 的 page_N 快照（走 UA 默认 250ms 交叉淡入），
+ * 会把旧页内容额外叠一层。这里直接把它们关掉——带裸 name 的 `page` 始终存在，
+ * 所以不会误伤真正的转场；万一将来出现「只有 page_N 没有 page」的情况，删掉这一段即可。
+ */
+::view-transition-old(page_1),
+::view-transition-new(page_1),
+::view-transition-group(page_1),
+::view-transition-old(page_2),
+::view-transition-new(page_2),
+::view-transition-group(page_2),
+::view-transition-old(page_3),
+::view-transition-new(page_3),
+::view-transition-group(page_3) {
+  animation: none;
+  display: none;
+}
+
+/*
+ * 降级：系统开启「减少动态效果」时关掉全部 view-transition 动画。
+ * 用 !important 是因为 UA 的 ::view-transition-* 规则优先级很高，
+ * 而且 React 注入的内联 `view-transition-name` 还在，不能靠不渲染来规避。
+ */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-image-pair(*) {
+    animation: none !important;
+  }
+}
+

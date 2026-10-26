@@ -2,6 +2,19 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 import { NAV_ITEMS, SITE } from '@/content/site';
+import { prefetchJournal } from '@/lib/prefetch';
+
+/**
+ * 站内导航 → chunk 预取。
+ *
+ * 只在 hover / focus 时触发（用户已经表达意图），不在挂载时触发：
+ * 首屏抢带宽会把 LCP 拖慢。日记页的 idle 预取放在 `Home` 里做。
+ */
+const NAV_PREFETCH: Readonly<Record<string, () => void>> = {
+  '/journal': () => {
+    void prefetchJournal();
+  },
+};
 
 /**
  * 顶部导航：滚动一屏内收缩 + 半透明毛玻璃，当前路由高亮。
@@ -57,6 +70,8 @@ export function Nav() {
                 key={item.href}
                 to={item.href}
                 aria-current={active ? 'page' : undefined}
+                onMouseEnter={() => NAV_PREFETCH[item.href]?.()}
+                onFocus={() => NAV_PREFETCH[item.href]?.()}
                 className={[
                   'rounded-full px-3.5 py-1.5 font-mono text-[11px] tracking-[0.14em] uppercase',
                   'transition-colors duration-[200ms] ease-brand',
