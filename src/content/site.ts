@@ -6,13 +6,12 @@ import type { Site } from './types';
  */
 export const SITE: Site = Object.freeze({
   name: 'Lowen',
-  bio: '在香港读计算机的学生。做一点前端与工具，也把没想清楚的事写成日记。',
+  bio: '到底什么人会想到又学数学又学计算机呢',
   /** 站点描述：搜索结果与分享卡片的文案。改这一处，全站 meta 跟着变。 */
   description: '奶龙奶龙奶？！',
-  statusLine: 'HK · CS · 2026',
+  statusLine: 'HK · CS & math',
   links: Object.freeze([
     { label: 'GitHub', href: 'https://github.com/L01nki1' },
-    // TODO: 填上 Instagram handle（形如 https://instagram.com/your_handle）即自动出现在页脚。
     // 留空时页脚会自动隐藏该条目 —— 有意的空值保护，避免链到一个没有内容的页面。
     { label: 'Instagram', href: '' },
     // TODO: 想公开邮箱就取消下面这行注释并填真实地址；假地址比没有更糟。

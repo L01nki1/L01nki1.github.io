@@ -2,7 +2,6 @@ import Hero from '@/components/sections/Hero';
 import JournalTeaser from '@/components/sections/JournalTeaser';
 import LinksSection from '@/components/sections/LinksSection';
 import ProjectsSection from '@/components/sections/ProjectsSection';
-import { SITE } from '@/content/site';
 import { getLatest } from '@/lib/journal';
 import { usePageMeta } from '@/lib/seo';
 
@@ -15,7 +14,9 @@ export function Home() {
 
   usePageMeta({
     title: '个人主页',
-    description: SITE.bio,
+    // 不传 description：留空即回落到 seo.ts 的 DEFAULT_DESCRIPTION（= SITE.description）。
+    // 之前这里传 SITE.bio，会在运行时把 head 里的静态 description 覆盖掉，
+    // 造成「静态 meta 改了但首页分享/搜索结果仍是旧文案」。
   });
 
   return (

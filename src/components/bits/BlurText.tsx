@@ -1,10 +1,23 @@
 'use client';
 
+/**
+ * BlurText —— 逐字/逐词的模糊入场文字动画（ReactBits 移植，基于 motion/react）。
+ *
+ * 四阶段状态机：from（初始隐藏）→ in（入场）→ out（退场）→ rest（静止）。
+ * 触发方式：view（IntersectionObserver 进入视口）/ load（挂载即播）/ hover / click。
+ * 内置 5 种效果预设（blur/zoom/tilt/focus/drift），也可用 animationFrom/To 完全自定义。
+ * 无障碍：真实文本以 sr-only span 提供，动画 span 一律 aria-hidden。
+ *
+ * ⚠️ 依赖 motion/react（已单独切 chunk），Hero 首屏标题在用它。
+ */
 import { motion, MotionConfig, type Easing, type MotionStyle, type Transition } from 'motion/react';
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 
+/** 一帧的样式快照：属性名 → 值（filter/opacity/scale/x/y…） */
 type Snapshot = Record<string, string | number>;
+/** 关键帧组：属性名 → [from, step1, step2…] */
 type Keyframes = Record<string, Array<string | number>>;
+/** 动画阶段状态机。 */
 type Phase = 'from' | 'in' | 'out' | 'rest';
 
 export type BlurTextEffect = 'blur' | 'zoom' | 'tilt' | 'focus' | 'drift';
@@ -48,12 +61,14 @@ interface EffectConfig {
   exitEase: Easing;
 }
 
+/** 单个动画单元（一个词或一个字符）。 */
 interface Piece {
   word: number;
   content: string;
   key: string;
 }
 
+/** 方向 → [动画轴, 正负号]。 */
 const AXES: Record<NonNullable<BlurTextProps['direction']>, ['x' | 'y', number]> = {
   top: ['y', -1],
   bottom: ['y', 1],
@@ -68,6 +83,7 @@ const CSS_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 const MOVE_KEYS = ['x', 'y', 'scale', 'rotateX', 'rotateY', 'skewX'];
 const INSTANT: Transition = { duration: 0 };
 
+/** 仅屏幕阅读器可见的样式（视觉上完全隐藏）。 */
 const SR_ONLY: CSSProperties = {
   position: 'absolute',
   width: 1,
@@ -86,6 +102,10 @@ const WORD_STYLE: CSSProperties = { display: 'inline-flex' };
 
 const blurTo = (px: number) => `blur(${Math.max(0, px)}px)`;
 
+/**
+ * 按效果名生成关键帧配置（from/steps/exit + 时序 + 弹性参数）。
+ * 各预设的差异只在 from/steps 的属性组合与 bounce（弹性，null 表示纯缓动）。
+ */
 const buildEffect = (
   effect: BlurTextEffect,
   direction: NonNullable<BlurTextProps['direction']>,
@@ -187,6 +207,7 @@ const buildEffect = (
   };
 };
 
+/** 把 from + steps 拍平成 motion 认的关键帧组：每个属性一条 [from, …steps] 数组。 */
 const buildKeyframes = (from: Snapshot, steps: Snapshot[]): Keyframes => {
   const keys = new Set<string>([...Object.keys(from), ...steps.flatMap(s => Object.keys(s))]);
 
@@ -197,6 +218,11 @@ const buildKeyframes = (from: Snapshot, steps: Snapshot[]): Keyframes => {
   return keyframes;
 };
 
+/**
+ * 计算每个单元的 stagger 次序（rank）。
+ * random 模式用文本作种子做 FNV-1a 哈希 + LCG 洗牌：同一文本每次渲染次序一致，
+ * 避免 SSR/CSR 或重渲染时动画顺序跳变。
+ */
 const buildRanks = (count: number, staggerFrom: BlurTextStaggerFrom, seedText: string): number[] => {
   const ranks = Array.from({ length: count }, (_, i) => i);
   if (staggerFrom === 'end') return ranks.map(i => count - 1 - i);
@@ -224,6 +250,7 @@ const buildRanks = (count: number, staggerFrom: BlurTextStaggerFrom, seedText: s
   return ranks;
 };
 
+/** 各触发方式对应的初始阶段：load 直接入场，hover/click 静止待触发，view 等 IO。 */
 const startPhase = (trigger: BlurTextTrigger): Phase =>
   trigger === 'load' ? 'in' : trigger === 'hover' || trigger === 'click' ? 'rest' : 'from';
 
@@ -280,6 +307,7 @@ const BlurText = ({
   const exitDuration = stepDuration * 1.3;
   const exitStagger = stagger * 0.4;
 
+  // 文本拆分成动画单元：words 模式整词一个单元（词尾补不换行空格），letters 模式逐字
   const words = useMemo(() => text.split(' '), [text]);
 
   const pieces = useMemo<Piece[]>(() => {
@@ -307,6 +335,7 @@ const BlurText = ({
   const inTotal = (totalDuration * (custom ? 1 : Math.max(1, fx.settle * 2.2)) + maxRank * stagger) * 1000;
   const outTotal = (exitDuration + maxRank * exitStagger) * 1000;
 
+  // view 触发：用 IntersectionObserver 等待进入视口再开始入场
   useEffect(() => {
     if (phase !== 'from') return undefined;
     if (trigger === 'load') {
@@ -332,6 +361,7 @@ const BlurText = ({
     return () => observer.disconnect();
   }, [phase, trigger, threshold, rootMargin]);
 
+  // 阶段推进定时器：in 播完回调 onComplete（loop 时再安排 out），out 播完回到 in
   useEffect(() => {
     let timer = 0;
     if (phase === 'in') {
@@ -360,6 +390,7 @@ const BlurText = ({
     if (settledRef.current) replay();
   };
 
+  // 入场过渡：位移类属性走 spring（有弹性），其余走统一缓动；自定义 keyframes 时全用传入 easing
   const inTransition = (rank: number): Transition => {
     const delayed = rank * stagger;
     if (custom) return { duration: totalDuration, times, delay: delayed, ease: easing ?? 'linear' };
@@ -414,6 +445,7 @@ const BlurText = ({
     );
   };
 
+  // focusOnHover：鼠标悬停某个词时，其余词整体虚化
   const wordStyle = (w: number): CSSProperties => {
     if (!focusOnHover) return WORD_STYLE;
     const dimmed = focusWord !== -1 && focusWord !== w;

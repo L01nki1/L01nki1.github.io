@@ -1,5 +1,15 @@
 'use client';
 
+/**
+ * AnimatedContent —— 基于 GSAP ScrollTrigger 的滚动入场动画包装器（ReactBits 移植）。
+ *
+ * 能力：位移/缩放/模糊/旋转/tilt 入场、子元素 stagger、渐变遮罩 wipe、
+ * scrub 滚动绑定、展示一段时间后自动退场（disappearAfter）。
+ * 尊重 prefers-reduced-motion：命中时直接可见、不播动画。
+ *
+ * ⚠️ 本组件静态 import 了 gsap + ScrollTrigger（体积较大），
+ * 只能放在懒加载的页面 chunk 里（目前仅 Journal 系列使用），禁止进首屏。
+ */
 import { useEffect, useLayoutEffect, useRef, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -41,8 +51,10 @@ export interface AnimatedContentProps extends Omit<HTMLAttributes<HTMLDivElement
   style?: CSSProperties;
 }
 
+/** 同构 layout effect：SSR 退化为 useEffect，浏览器端用 useLayoutEffect 避免首帧闪烁。 */
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
+/** wipe 遮罩模板：用 CSS 变量 `--ac-wipe`（0→1）驱动渐变遮罩的扫入进度。 */
 const WIPES: Record<string, string> = {
   up: 'linear-gradient(to top, #000 calc(var(--ac-wipe) * 140% - 40%), transparent calc(var(--ac-wipe) * 140%))',
   down: 'linear-gradient(to bottom, #000 calc(var(--ac-wipe) * 140% - 40%), transparent calc(var(--ac-wipe) * 140%))',
@@ -84,6 +96,7 @@ const AnimatedContent = ({
   style,
   ...props
 }: AnimatedContentProps) => {
+  // 回调存进 ref，让动画闭包始终拿到最新版本，又不触发 effect 重跑
   const ref = useRef<HTMLDivElement>(null);
   const callbacksRef = useRef({ onStart, onComplete, onDisappearanceComplete });
   callbacksRef.current = { onStart, onComplete, onDisappearanceComplete };
@@ -92,12 +105,15 @@ const AnimatedContent = ({
     const el = ref.current;
     if (!el) return undefined;
 
+    // 滚动容器：默认用 #snap-main-container（若存在），否则退回 window
     let scroller: Element | string | null = container || document.getElementById('snap-main-container') || null;
     if (typeof scroller === 'string') scroller = document.querySelector(scroller);
 
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
+    // gsap.context 收集本组件产生的所有动画/触发器，卸载时一次性 revert
     const ctx = gsap.context(() => {
+      // 有 stagger 且有子元素时，把每个子元素作为独立目标分别入场
       const targets: Element[] = stagger > 0 && el.children.length ? Array.from(el.children) : [el];
       const horizontal = direction === 'horizontal';
       const axis = horizontal ? 'x' : 'y';
@@ -106,11 +122,13 @@ const AnimatedContent = ({
 
       gsap.set(el, { visibility: 'visible' });
 
+      // 用户偏好减少动效：跳过全部动画，只保留可见状态
       if (reduce) {
         callbacksRef.current.onComplete?.();
         return;
       }
 
+      // from/to 两帧定义入场：从偏移位/缩放/透明度 → 归位
       const from: gsap.TweenVars = {
         [axis]: distance * sign,
         scale,
@@ -146,11 +164,13 @@ const AnimatedContent = ({
       }
       if (stagger > 0) to.stagger = { each: stagger, from: staggerFrom };
 
+      // 动画结束后清掉内联 transform/filter/mask，避免影响后续布局与 hover 效果
       const settle = () => {
         if (scrub) return;
         gsap.set(targets, { clearProps: mask ? 'filter,transform,maskImage,webkitMaskImage' : 'filter,transform' });
       };
 
+      // disappearAfter > 0 时：入场完成后延迟一段时间再整组退场
       const disappear = () => {
         if (disappearAfter <= 0) return;
         const out: gsap.TweenVars = {
@@ -167,24 +187,29 @@ const AnimatedContent = ({
         gsap.to(targets, out);
       };
 
+      // 主时间线：先暂停，由触发方式决定何时 play
       const tl = gsap.timeline({
         paused: true,
         onStart: () => callbacksRef.current.onStart?.(),
         onComplete: () => {
           callbacksRef.current.onComplete?.();
           settle();
+          // once 模式：播完一次后再按 disappearAfter 安排退场
           if (once && !scrub) disappear();
         }
       });
       tl.fromTo(targets, from, to, scrub ? 0 : Math.max(delay, 0));
 
+      // mount 模式：挂载即播，无需滚动触发
       if (trigger === 'mount') {
         tl.play();
         return;
       }
 
+      // 触发点：元素顶部到达「视口高度 × threshold」处时入场
       const start = `top ${(1 - threshold) * 100}%`;
 
+      // scrub 模式：动画进度与滚动位置绑定，而非一次性播放
       if (scrub) {
         ScrollTrigger.create({
           trigger: el,
@@ -197,6 +222,7 @@ const AnimatedContent = ({
         return;
       }
 
+      // 普通滚动触发模式；once=false 时滚回触发点上方会反向回退
       ScrollTrigger.create({
         trigger: el,
         scroller,
