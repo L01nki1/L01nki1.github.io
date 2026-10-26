@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" role="img" aria-label="外链配图占位 03">
+  <defs>
+    <linearGradient id="p3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#242C34"/>
+      <stop offset="1" stop-color="#181D24"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#p3)"/>
+  <g stroke="#ffffff" stroke-opacity="0.09" stroke-width="1">
+    <path d="M0 125h800M0 250h800M0 375h800M200 0v500M400 0v500M600 0v500"/>
+  </g>
+  <path d="M340 300l60-70 60 70" fill="none" stroke="#54E6F0" stroke-opacity="0.25" stroke-width="1.5"/>
+  <text x="32" y="52" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" letter-spacing="3" fill="#9BA1A9">PLACEHOLDER 03</text>
+  <text x="32" y="452" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16" letter-spacing="2" fill="#6B747D">800 × 500 · TODO</text>
+</svg>

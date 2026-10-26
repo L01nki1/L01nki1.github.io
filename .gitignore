@@ -1,0 +1,24 @@
+# 依赖与产物
+node_modules/
+dist/
+dist-ssr/
+
+# 构建缓存
+node_modules/.tmp/
+*.tsbuildinfo
+
+# 编辑器与系统
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# 日志
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 内部规划与验收文档（设计规划 / PRD / 架构 / QA 报告与截图）
+# 只保留在本地参考，不进版本库、不随站点发布
+docs/

@@ -1,0 +1,32 @@
+import type { Site } from './types';
+
+/**
+ * 站点级文案 —— 全站唯一的手改文字入口。
+ * 改名字、简介、状态行、联系方式，只动这个文件。
+ */
+export const SITE: Site = Object.freeze({
+  name: 'Lowen',
+  bio: '在香港读计算机的学生。做一点前端与工具，也把没想清楚的事写成日记。',
+  statusLine: 'HK · CS · 2026',
+  links: Object.freeze([
+    { label: 'GitHub', href: 'https://github.com/L01nki1' },
+    // TODO: 填上 Instagram handle（形如 https://instagram.com/your_handle）即自动出现在页脚。
+    // 留空时页脚会自动隐藏该条目 —— 有意的空值保护，避免链到一个没有内容的页面。
+    { label: 'Instagram', href: '' },
+    // TODO: 想公开邮箱就取消下面这行注释并填真实地址；假地址比没有更糟。
+    // { label: 'Email', href: 'mailto:you@example.com' },
+  ]),
+});
+
+/** 导航项 —— 顺序即展示顺序。 */
+export const NAV_ITEMS = Object.freeze([
+  { label: '首页', href: '/' },
+  { label: '日记', href: '/journal' },
+] as const);
+
+/** 「更多项目」CTA 的目标（Bento 网格最后一格）。 */
+export const MORE_PROJECTS = Object.freeze({
+  label: '更多项目',
+  hint: '在 GitHub 上查看全部仓库、提交与实验',
+  href: 'https://github.com/L01nki1',
+});

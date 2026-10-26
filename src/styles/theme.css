@@ -1,0 +1,218 @@
+@import "tailwindcss";
+@import "@fontsource/sora/600.css";
+@import "@fontsource/sora/700.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@plugin "@tailwindcss/typography";
+
+/*
+ * 设计 token（唯一色彩来源）。
+ * 全站只允许两个强调色：--color-accent #54E6F0 / --color-accent-2 #715ED1。
+ * 注意：Tailwind v4 没有 `--duration-*` namespace，写 `--duration-*` 不会生成 `duration-*`
+ * 工具类且不报错；时长一律写 `duration-[200ms]` / `duration-[320ms]` / `duration-[520ms]`。
+ */
+@theme {
+  --color-bg: #08090b;
+  --color-surface: #0e1013;
+  --color-elevated: #14171b;
+  --color-line: rgb(255 255 255 / 0.08);
+  --color-line-strong: rgb(255 255 255 / 0.14);
+  --color-text: #edeff2;
+  --color-muted: #9ba1a9;
+  --color-faint: #5f666e;
+  --color-accent: #54e6f0;
+  --color-accent-2: #715ed1;
+
+  /* 中文一律接系统栈，不引 Noto Sans SC 字体包（否则首屏多 1MB 中文字体） */
+  --font-display: "Sora", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --font-body: "Inter", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "PingFang SC", "Microsoft YaHei", monospace;
+
+  --text-hero: clamp(2.6rem, 6vw, 5.5rem);
+  --text-hero--line-height: 1.02;
+  --text-hero--letter-spacing: -0.03em;
+  --text-h2: clamp(1.75rem, 3vw, 2.5rem);
+  --text-h2--line-height: 1.15;
+  --text-h2--letter-spacing: -0.02em;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+
+  --ease-brand: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --container-site: 1200px;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    /* 装饰性辉光/光束溢出时用 clip 而不是 hidden：不产生滚动容器，也不影响 fixed 层 */
+    overflow-x: clip;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    @apply bg-bg text-text font-body antialiased;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 26%, transparent);
+    color: var(--color-text);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  .hp-container {
+    @apply mx-auto w-full px-6 md:px-10 lg:px-16;
+    max-width: var(--container-site);
+  }
+
+  .hp-section {
+    @apply relative w-full;
+    padding-block: clamp(4.5rem, 10vh, 8rem);
+  }
+
+  /**
+   * 整屏区块：最小一屏高 + 内容垂直居中，底部多留 12vh，
+   * 让下一屏的边缘露出来作为滚动暗示。
+   */
+  .hp-screen {
+    @apply relative w-full;
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: clamp(4.5rem, 10vh, 8rem);
+    padding-bottom: calc(clamp(4.5rem, 10vh, 8rem) + 12vh);
+  }
+
+  .hp-eyebrow {
+    @apply font-mono text-[11px] tracking-[0.22em] text-faint uppercase;
+  }
+
+  .hp-pill {
+    @apply inline-flex items-center rounded-full border border-line bg-white/[0.03] px-3 py-1 font-mono text-[11px] tracking-wide text-muted;
+    transition: color 200ms var(--ease-brand), border-color 200ms var(--ease-brand), background-color 200ms var(--ease-brand);
+  }
+
+  .hp-pill--active {
+    border-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    color: var(--color-accent);
+  }
+
+  .hp-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-medium;
+    transition:
+      transform 200ms var(--ease-brand),
+      background-color 200ms var(--ease-brand),
+      border-color 200ms var(--ease-brand),
+      color 200ms var(--ease-brand);
+  }
+
+  .hp-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .hp-btn--primary {
+    background: var(--color-accent);
+    color: #04131a;
+  }
+
+  .hp-btn--primary:hover {
+    background: color-mix(in srgb, var(--color-accent) 86%, white);
+  }
+
+  .hp-btn--ghost {
+    border: 1px solid var(--color-line-strong);
+    color: var(--color-text);
+    background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  }
+
+  .hp-btn--ghost:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+    color: var(--color-accent);
+  }
+
+  .hp-grid-hair {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    background-size: 96px 96px;
+  }
+}
+
+/*
+ * bits 组件样式覆盖：只允许「区块前缀 + 原类名」，禁止裸改 `.letter-glitch` 等类名。
+ */
+
+/* Hero 的字母场：容器铺满，canvas 由组件内部绝对定位 */
+.sec-hero .letter-glitch {
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * ② 屏光束层：叠在底图之上、卡片之下。
+ *
+ * 关键：`mix-blend-mode` 必须加在 **z-10 的那层包装 div**（`.hp-rays`）上，不能加在
+ * `.side-rays` 组件内部容器上——包装 div 带 `z-index` 会形成独立层叠上下文，
+ * 它的子元素再写 screen 就只在「空背景」里混合，等于失效（实测贡献从 ~10% 掉到 1.5%）。
+ * 放在这一层，混合背景才是下面那层 z-0 光洗。
+ */
+.sec-links .hp-rays {
+  opacity: 1;
+  mix-blend-mode: screen;
+}
+
+/*
+ * ② 屏纵向遮罩：让光在区块上下边缘淡出，接回全站近黑底。
+ *
+ * 两层都要遮：底图光洗（`.hp-wash` 也在 z-0 那层）和 SideRays 画布都是 inset-0 的整块，
+ * 不遮就是一条直线分界；光洗层被遮后里面的细网格也一起淡出，正好。
+ */
+.sec-links .hp-wash {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 9%,
+    #000 91%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(to bottom, transparent 0, #000 9%, #000 91%, transparent 100%);
+}
+
+/* ① 屏项目卡的辉光容器需要整卡可点 */
+.sec-projects .border-glow-card {
+  height: 100%;
+}
+
+/*
+ * ③ 屏叠卡：CardSwap 通过内联样式写主题变量，因此只能用 !important 覆盖，
+ * 目的是把默认的紫灰卡片压回本站的表面色（全站只允许两个强调色）。
+ */
+.sec-teaser .card-swap {
+  --swap-tile: linear-gradient(180deg, #14171b 0%, #0e1013 100%) !important;
+  --swap-tile-edge: rgb(255 255 255 / 0.08) !important;
+  --swap-tile-highlight: rgb(255 255 255 / 0.06) !important;
+  --swap-media-edge: rgb(255 255 255 / 0.06) !important;
+  --swap-ink: #edeff2 !important;
+  --swap-badge: rgb(255 255 255 / 0.05) !important;
+  --swap-shade: #08090b !important;
+}

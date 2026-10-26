@@ -1,0 +1,167 @@
+/*
+ * 日记正文排版。
+ * 只在 /journal/:slug 路由懒加载（JournalPost.tsx 里 `import '@/styles/prose.css'`），
+ * 因此这里手写全部规则，不依赖 typography 插件生成的类，保证长文可读并且不进首屏 CSS。
+ * 正文最大宽 68ch（移动端不生效，走容器 padding）。
+ */
+.hp-prose {
+  max-width: 68ch;
+  font-size: 1rem;
+  line-height: 1.78;
+  color: color-mix(in srgb, var(--color-text) 92%, transparent);
+}
+
+@media (max-width: 767px) {
+  .hp-prose {
+    max-width: none;
+  }
+}
+
+.hp-prose > * + * {
+  margin-top: 1.15em;
+}
+
+.hp-prose h2,
+.hp-prose h3,
+.hp-prose h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  scroll-margin-top: 6rem;
+}
+
+.hp-prose h2 {
+  margin-top: 2.4em;
+  font-size: 1.5rem;
+}
+
+.hp-prose h3 {
+  margin-top: 2em;
+  font-size: 1.2rem;
+}
+
+.hp-prose h4 {
+  margin-top: 1.8em;
+  font-size: 1.05rem;
+}
+
+.hp-prose p {
+  margin-top: 1.15em;
+}
+
+.hp-prose a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  transition: text-decoration-color 200ms var(--ease-brand);
+}
+
+.hp-prose a:hover {
+  text-decoration-color: var(--color-accent);
+}
+
+.hp-prose strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.hp-prose em {
+  color: var(--color-muted);
+}
+
+.hp-prose ul,
+.hp-prose ol {
+  padding-left: 1.35em;
+  margin-top: 1.15em;
+}
+
+.hp-prose ul {
+  list-style: disc;
+}
+
+.hp-prose ol {
+  list-style: decimal;
+}
+
+.hp-prose li {
+  margin-top: 0.5em;
+}
+
+.hp-prose li::marker {
+  color: var(--color-faint);
+}
+
+.hp-prose blockquote {
+  margin-top: 1.6em;
+  padding: 0.25em 0 0.25em 1.15em;
+  border-left: 2px solid color-mix(in srgb, var(--color-accent-2) 65%, transparent);
+  color: var(--color-muted);
+}
+
+.hp-prose code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  padding: 0.15em 0.4em;
+  border-radius: 6px;
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-elevated) 80%, transparent);
+  color: var(--color-accent);
+}
+
+.hp-prose pre {
+  margin-top: 1.6em;
+  padding: 1.15rem 1.25rem;
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+.hp-prose pre code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font-size: inherit;
+}
+
+.hp-prose hr {
+  margin-top: 2.6em;
+  border: 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.hp-prose img {
+  margin-top: 1.6em;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-line);
+}
+
+.hp-prose table {
+  width: 100%;
+  margin-top: 1.6em;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.hp-prose th,
+.hp-prose td {
+  padding: 0.6em 0.8em;
+  border-bottom: 1px solid var(--color-line);
+  text-align: left;
+}
+
+.hp-prose th {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
