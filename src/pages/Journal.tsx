@@ -183,10 +183,10 @@ export function Journal() {
         <header className="max-w-2xl">
           <p className="hp-eyebrow">Journal</p>
           <h1 className="mt-3 font-display text-h2 font-semibold text-text">
-            写下来才算想清楚
+            或许是一些想法
           </h1>
           <p className="mt-4 text-sm leading-relaxed text-muted">
-            技术笔记、城市观察，以及一些还没想清楚的事。按时间倒序，共 {posts.length} 篇。
+            碎碎念以及人类观察日记，共 {posts.length} 篇。
           </p>
         </header>
 
