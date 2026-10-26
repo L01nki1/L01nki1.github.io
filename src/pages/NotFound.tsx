@@ -10,7 +10,7 @@ import { usePageMeta } from '@/lib/seo';
 export function NotFound() {
   usePageMeta({
     title: '页面走丢了',
-    description: '这个地址没有内容，回到首页继续逛。',
+    description: '你似乎跌入了无人的虚空。',
   });
 
   return (
@@ -39,7 +39,7 @@ export function NotFound() {
         <p className="hp-eyebrow">Error 404</p>
         <h1 className="mt-4 font-display text-hero font-bold text-text">走丢了</h1>
         <p className="mt-5 max-w-[42ch] text-sm leading-relaxed text-muted">
-          这个地址没有内容。可能是链接写错了，也可能是这篇日记还是草稿。
+          这个地址没有内容。检查链接是否正确。
         </p>
 
         <div className="mt-9 flex flex-wrap gap-3">

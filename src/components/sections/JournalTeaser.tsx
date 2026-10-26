@@ -31,11 +31,10 @@ export function JournalTeaser({ posts }: JournalTeaserProps) {
           <div>
             <p className="hp-eyebrow">03 — Journal</p>
             <h2 className="mt-3 font-display text-h2 font-semibold text-text">
-              写下来才算想清楚
+              人类观察手册
             </h2>
             <p className="mt-4 max-w-[42ch] text-sm leading-relaxed text-muted">
-              技术笔记、城市观察，以及一些没结论的思考。日记是 Markdown 文件，
-              加一篇就等于加一个 md 文件，不需要改任何组件。
+              或许你想看看我最近在做什么
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">

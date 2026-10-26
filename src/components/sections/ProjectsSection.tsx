@@ -42,7 +42,7 @@ export function ProjectsSection() {
           <div>
             <p className="hp-eyebrow">01 — Selected work</p>
             <h2 className="mt-3 font-display text-h2 font-semibold text-text">
-              做过的东西，能点的都放这儿
+              做的一些小项目
             </h2>
           </div>
           <p className="max-w-sm text-sm leading-relaxed text-muted">{PROJECTS_INTRO}</p>
