@@ -7,6 +7,8 @@ import type { Site } from './types';
 export const SITE: Site = Object.freeze({
   name: 'Lowen',
   bio: '在香港读计算机的学生。做一点前端与工具，也把没想清楚的事写成日记。',
+  /** 站点描述：搜索结果与分享卡片的文案。改这一处，全站 meta 跟着变。 */
+  description: '奶龙奶龙奶？！',
   statusLine: 'HK · CS · 2026',
   links: Object.freeze([
     { label: 'GitHub', href: 'https://github.com/L01nki1' },

@@ -10,7 +10,11 @@ export interface PageMeta {
   image?: string;
 }
 
-const DEFAULT_DESCRIPTION = SITE.bio;
+/**
+ * 默认描述取 `SITE.description`（不是 `bio`）。
+ * 静态 meta 由 vite 插件注入同一个字段，所以爬虫与运行时看到的是同一句话。
+ */
+const DEFAULT_DESCRIPTION = SITE.description;
 const DEFAULT_IMAGE = `${import.meta.env.BASE_URL}og-image.png`;
 const SEPARATOR = ' · ';
 

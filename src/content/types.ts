@@ -43,6 +43,16 @@ export interface JournalPost extends JournalMeta {
 export interface Site {
   name: string;
   bio: string;
+  /**
+   * 站点描述 —— 唯一来源。
+   *
+   * 用途：SEO description、OG/Twitter 摘要、分享卡片文案。
+   * 与 `bio` 分开：`bio` 是首屏要读给人看的一段话，可以长；
+   * `description` 会被塞进搜索结果和分享卡片，要短、要能独立成立。
+   * `index.html` 里的静态 meta 由 `vite.config.ts` 的插件在构建时注入本字段，
+   * 不要再去 html 里手写，否则又会出现两套文案。
+   */
+  description: string;
   statusLine: string;
   /** 只读数组：内容层一律冻结，页面不得增删。 */
   links: readonly { label: string; href: string }[];
