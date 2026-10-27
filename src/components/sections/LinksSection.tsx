@@ -1,12 +1,12 @@
-import { Suspense, lazy } from 'react';
-
 import LinkCard from '@/components/sections/LinkCard';
 import InView from '@/components/ui/InView';
+import LazyReveal from '@/components/ui/LazyReveal';
 import { LINKS } from '@/content/links';
 import { useIsLowPowerDevice } from '@/hooks/useMedia';
 
-/** 懒边界：SideRays 是 WebGL2，不能进首屏 chunk。 */
-const SideRays = lazy(() => import('@/components/bits/SideRays'));
+/** 懒加载：SideRays 是 WebGL2，不能进首屏 chunk。
+ *  用 LazyReveal 而非 lazy+Suspense —— Suspense 揭示会激活外层 page 转场（见 LazyReveal 注释）。 */
+const loadSideRays = () => import('@/components/bits/SideRays').then(module => module.default);
 
 /**
  * ② 屏底图光洗。
@@ -63,7 +63,8 @@ export function LinksSection() {
       {/* z-10 光束层：screen 混合写在 .hp-rays 这一层（见 theme.css 注释） */}
       <div aria-hidden="true" className="hp-rays hp-wash absolute inset-0 z-10">
         <InView unmountOnExit rootMargin="300px" className="h-full w-full">
-          <Suspense fallback={null}>
+        <LazyReveal load={loadSideRays} fallback={null}>
+          {SideRays => (
             <SideRays
               origin="top-right"
               rayColor1="#54E6F0"
@@ -73,7 +74,8 @@ export function LinksSection() {
               followMouse
               maxDevicePixelRatio={lowPower ? 1 : 1.5}
             />
-          </Suspense>
+          )}
+        </LazyReveal>
         </InView>
       </div>
 

@@ -1,14 +1,11 @@
-import { Suspense, lazy } from 'react';
-
 import InView from '@/components/ui/InView';
+import LazyReveal from '@/components/ui/LazyReveal';
 import { PROJECTS } from '@/content/projects';
 
-/** 懒边界：网格内含 gsap（AnimatedContent）+ BorderGlow，不能进首屏 chunk。 */
-const ProjectsGrid = lazy(() =>
-  import('@/components/sections/ProjectsGrid').then(module => ({
-    default: module.ProjectsGrid,
-  })),
-);
+/** 懒加载：网格内含 gsap（AnimatedContent）+ BorderGlow，不能进首屏 chunk。
+ *  用 LazyReveal 而非 lazy+Suspense —— Suspense 揭示会激活外层 page 转场（见 LazyReveal 注释）。 */
+const loadProjectsGrid = () =>
+  import('@/components/sections/ProjectsGrid').then(module => module.ProjectsGrid);
 
 /** 网格占位：与真实网格同高，避免懒加载造成的 CLS。 */
 function GridSkeleton() {
@@ -50,9 +47,9 @@ export function ProjectsSection() {
 
         <div className="mt-10">
           <InView rootMargin="400px" minHeight={420}>
-            <Suspense fallback={<GridSkeleton />}>
-              <ProjectsGrid projects={PROJECTS} />
-            </Suspense>
+            <LazyReveal load={loadProjectsGrid} fallback={<GridSkeleton />}>
+              {ProjectsGrid => <ProjectsGrid projects={PROJECTS} />}
+            </LazyReveal>
           </InView>
         </div>
       </div>

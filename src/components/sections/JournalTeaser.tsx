@@ -1,16 +1,14 @@
-import { Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
 
+import LazyReveal from '@/components/ui/LazyReveal';
 import { useIsMobile } from '@/hooks/useMedia';
 import { formatDate } from '@/lib/journal';
 import type { JournalPost } from '@/content/types';
 
-/** 懒边界：CardSwap 只在 ≥768px 且进入视口后才加载，移动端完全不下载。 */
-const JournalCardStack = lazy(() =>
-  import('@/components/sections/JournalCardStack').then(module => ({
-    default: module.JournalCardStack,
-  })),
-);
+/** 懒加载：CardStack 只在 ≥768px 且进入视口后才加载，移动端完全不下载。
+ *  用 LazyReveal 而非 lazy+Suspense —— Suspense 揭示会激活外层 page 转场（见 LazyReveal 注释）。 */
+const loadJournalCardStack = () =>
+  import('@/components/sections/JournalCardStack').then(module => module.JournalCardStack);
 
 export interface JournalTeaserProps {
   posts: readonly JournalPost[];
@@ -80,7 +78,8 @@ export function JournalTeaser({ posts }: JournalTeaserProps) {
                 ))}
               </ul>
             ) : (
-              <Suspense
+              <LazyReveal
+                load={loadJournalCardStack}
                 fallback={
                   <div
                     className="h-[260px] w-full rounded-[16px] border border-line bg-surface/50"
@@ -88,8 +87,8 @@ export function JournalTeaser({ posts }: JournalTeaserProps) {
                   />
                 }
               >
-                <JournalCardStack posts={posts} />
-              </Suspense>
+                {CardStack => <CardStack posts={posts} />}
+              </LazyReveal>
             )}
           </div>
         </div>
