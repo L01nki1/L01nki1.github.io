@@ -13,7 +13,7 @@ export const SITE: Site = Object.freeze({
   links: Object.freeze([
     { label: 'GitHub', href: 'https://github.com/L01nki1' },
     // 留空时页脚会自动隐藏该条目 —— 有意的空值保护，避免链到一个没有内容的页面。
-    { label: 'Instagram', href: '' },
+    { label: 'Instagram', href: 'https://www.instagram.com/hiilowen' },
     // TODO: 想公开邮箱就取消下面这行注释并填真实地址；假地址比没有更糟。
     // { label: 'Email', href: 'mailto:you@example.com' },
   ]),
